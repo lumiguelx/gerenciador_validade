@@ -164,4 +164,56 @@
   .modern-shadow-lg {
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   }
+
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .mobile-compact {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+    }
+    
+    .mobile-card {
+      padding: 0.75rem;
+      margin: 0.5rem;
+    }
+    
+    .mobile-text-xs {
+      font-size: 0.75rem;
+      line-height: 1rem;
+    }
+    
+    .mobile-spacing {
+      gap: 0.5rem;
+    }
+    
+    /* Ensure content fits in viewport */
+    .mobile-container {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+    
+    /* Compact buttons for mobile */
+    .mobile-btn {
+      padding: 0.5rem;
+      min-height: 2.5rem;
+    }
+    
+    /* Better touch targets */
+    .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  /* Prevent horizontal scroll on mobile */
+  @media (max-width: 640px) {
+    body {
+      overflow-x: hidden;
+    }
+    
+    .container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
 }

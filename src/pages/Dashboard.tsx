@@ -756,7 +756,7 @@ export default function Dashboard() {
           />
           
           {/* Drawer */}
-          <div className="relative w-80 max-w-sm clean-sidebar shadow-xl flex flex-col">
+          <div className="relative w-72 max-w-[85vw] clean-sidebar shadow-xl flex flex-col">
             {/* Mobile Header */}
             <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -886,21 +886,21 @@ export default function Dashboard() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
         {/* Mobile Header with Menu */}
-        <header className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 lg:px-6 py-4">
+        <header className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-3 sm:px-4 lg:px-6 py-3 lg:py-4">
           <div className="flex items-center justify-between">
             {/* Mobile Menu Button + Logo */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button 
-                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700"
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 touch-target"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
               <div className="flex items-center gap-2 lg:hidden">
-                <img src="/yama-favicon.svg" alt="YAMA" className="w-8 h-8" />
-                <h1 className="text-lg font-bold text-gray-900 dark:text-white">Bobo Validades</h1>
+                <img src="/yama-favicon.svg" alt="YAMA" className="w-6 h-6 sm:w-8 sm:h-8" />
+                <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">Bobo Validades</h1>
               </div>
               <div className="hidden lg:block">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
@@ -909,21 +909,22 @@ export default function Dashboard() {
             </div>
             
             {/* Header Actions */}
-            <div className="flex items-center gap-2 lg:gap-4">
-              <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-400">
-                {filteredProducts.length} de {products.length} produtos
+            <div className="flex items-center gap-1 sm:gap-2 lg:gap-4">
+              <div className="hidden sm:block text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                <span className="hidden md:inline">{filteredProducts.length} de {products.length} produtos</span>
+                <span className="md:hidden">{filteredProducts.length}/{products.length}</span>
               </div>
               <button 
                 onClick={handleLogout}
-                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400"
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400 touch-target"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-6 overflow-auto bg-gray-50 dark:bg-slate-900">
+        <main className="flex-1 p-2 sm:p-4 lg:p-6 overflow-auto bg-gray-50 dark:bg-slate-900 mobile-container">
 
 
           {/* Search and Filters */}
@@ -1095,9 +1096,9 @@ export default function Dashboard() {
                   )}
                 </div>
               ) : (
-                <div className="overflow-x-auto -mx-4 lg:mx-0">
-                  <div className="min-w-full inline-block align-middle">
-                    <Table className="min-w-full">
+                {/* Desktop Table View */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <Table>
                     <TableHeader>
                       <TableRow className="border-gray-100 dark:border-slate-800/30 hover:bg-gray-50/50 dark:hover:bg-slate-900/20">
                         <TableHead className="w-12">
@@ -1204,8 +1205,97 @@ export default function Dashboard() {
                         );
                       })}
                     </TableBody>
-                    </Table>
-                  </div>
+                  </Table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="lg:hidden space-y-3 p-4">
+                  {paginatedProducts.map((product) => {
+                    const daysUntilExpiry = getDaysUntilExpiry(product.expiry_date);
+                    const expired = isExpired(product.expiry_date);
+                    const expiringSoon = isExpiringSoon(product.expiry_date);
+                    
+                    return (
+                      <div 
+                        key={product.id}
+                        className={`rounded-lg border p-4 space-y-3 ${
+                          expired 
+                            ? 'bg-rose-50/50 dark:bg-rose-900/10 border-rose-200 dark:border-rose-800' 
+                            : expiringSoon 
+                              ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800'
+                              : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700'
+                        }`}
+                      >
+                        {/* Header with checkbox and actions */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-3 flex-1 min-w-0">
+                            <Checkbox
+                              checked={selectedProducts.has(product.id)}
+                              onCheckedChange={(checked) => handleSelectProduct(product.id, checked as boolean)}
+                              className="border-emerald-300 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 mt-1"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+                                {product.product_name}
+                              </h3>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                {product.product_brand || 'Sem sessão'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-1 flex-shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(product)}
+                              className="h-8 w-8 p-0 hover:bg-emerald-100 dark:hover:bg-emerald-800/30"
+                            >
+                              <Pencil className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(product.id)}
+                              className="h-8 w-8 p-0 hover:bg-rose-100 dark:hover:bg-rose-800/30"
+                            >
+                              <Trash2 className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Product details */}
+                        <div className="grid grid-cols-3 gap-3 text-sm">
+                          <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Validade</p>
+                            <p className="font-medium text-gray-900 dark:text-white text-xs">
+                              {format(new Date(product.expiry_date), 'dd/MM/yy')}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Dias</p>
+                            <p className={`font-bold text-xs ${
+                              expired 
+                                ? 'text-rose-600 dark:text-rose-400' 
+                                : expiringSoon 
+                                  ? 'text-amber-600 dark:text-amber-400' 
+                                  : 'text-emerald-600 dark:text-emerald-400'
+                            }`}>
+                              {expired ? 'Vencido' : daysUntilExpiry}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Qtd</p>
+                            <p className="font-medium text-gray-900 dark:text-white text-xs">{product.quantity}</p>
+                          </div>
+                        </div>
+
+                        {/* Status badge */}
+                        <div>
+                          {getStatusBadge(product.status, daysUntilExpiry)}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               

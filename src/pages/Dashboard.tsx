@@ -71,6 +71,7 @@ export default function Dashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('all');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const sessions = [
     'Farináceos & Leites',
@@ -632,8 +633,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex">
-      {/* Clean White Sidebar */}
-      <div className="print:hidden w-64 clean-sidebar shadow-sm flex flex-col">
+      {/* Clean White Sidebar - Hidden on mobile, drawer on mobile */}
+      <div className="print:hidden hidden lg:flex w-64 clean-sidebar shadow-sm flex-col">
         {/* Logo/Header */}
         <div className="p-6 border-b border-gray-200 dark:border-slate-700">
           <div className="flex items-center gap-3">
@@ -745,24 +746,184 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Mobile Sidebar Drawer */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50" 
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          
+          {/* Drawer */}
+          <div className="relative w-80 max-w-sm clean-sidebar shadow-xl flex flex-col">
+            {/* Mobile Header */}
+            <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <img src="/yama-favicon.svg" alt="YAMA" className="w-8 h-8" />
+                <div>
+                  <h1 className="text-lg font-bold text-gray-900 dark:text-white">Bobo Validades</h1>
+                </div>
+              </div>
+              <button 
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Admin Panel in Mobile Sidebar */}
+            {isAdmin && allUsers.length > 0 && (
+              <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+                <div className="text-gray-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Shield className="h-3 w-3" />
+                  Administração
+                </div>
+                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                  <SelectTrigger className="w-full bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mine">
+                      <div className="flex items-center gap-2">
+                        <User className="h-3 w-3 text-emerald-600" />
+                        <span>Meus Produtos</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="all">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-3 w-3 text-emerald-600" />
+                        <span>Todos os Usuários ({allUsers.reduce((sum, user) => sum + (user.product_count || 0), 0)})</span>
+                      </div>
+                    </SelectItem>
+                    {allUsers.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        <div className="flex items-center gap-2">
+                          <User className="h-3 w-3" />
+                          <span>{user.email} ({user.product_count || 0})</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Mobile Navigation Menu */}
+            <nav className="flex-1 p-4 space-y-2">
+              <div className="text-gray-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider mb-4">
+                Menu Principal
+              </div>
+              
+              <Button
+                onClick={() => {
+                  navigate('/novo-produto');
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full justify-start bg-emerald-500 hover:bg-emerald-600 text-white border-0 h-12"
+              >
+                <Plus className="w-5 h-5 mr-3" />
+                Novo Produto
+              </Button>
+              
+              <Button
+                onClick={() => {
+                  setExportModalOpen(true);
+                  setMobileMenuOpen(false);
+                }}
+                variant="ghost"
+                className="w-full justify-start text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 h-12"
+              >
+                <FileText className="w-5 h-5 mr-3" />
+                Exportar Relatório
+              </Button>
+
+              {/* Mobile Quick Stats */}
+              <div className="mt-6">
+                <div className="text-gray-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider mb-4">
+                  Estatísticas
+                </div>
+                <div className="space-y-3">
+                  <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-3 border border-gray-200 dark:border-slate-700">
+                    <div className="text-gray-900 dark:text-white text-xl font-bold">{stats.total}</div>
+                    <div className="text-gray-600 dark:text-slate-400 text-sm">Total de Produtos</div>
+                  </div>
+                  {expiredProducts.length > 0 && (
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                      <div className="text-red-600 dark:text-red-400 text-xl font-bold">{expiredProducts.length}</div>
+                      <div className="text-red-500 dark:text-red-400 text-sm">Produtos Vencidos</div>
+                    </div>
+                  )}
+                  {expiringProducts.length > 0 && (
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                      <div className="text-amber-600 dark:text-amber-400 text-xl font-bold">{expiringProducts.length}</div>
+                      <div className="text-amber-500 dark:text-amber-400 text-sm">Vencendo em 7 dias</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </nav>
+
+            {/* Mobile Bottom Actions */}
+            <div className="p-4 border-t border-gray-200 dark:border-slate-700">
+              <Button
+                onClick={() => {
+                  handleLogout();
+                  setMobileMenuOpen(false);
+                }}
+                variant="ghost"
+                className="w-full justify-start text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 h-12"
+              >
+                <LogOut className="w-5 h-5 mr-3" />
+                Sair do Sistema
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
-        {/* Top Header */}
-        <header className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-6 py-4">
+        {/* Mobile Header with Menu */}
+        <header className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
-              <p className="text-gray-600 dark:text-gray-400">Controle de validades e estoque</p>
+            {/* Mobile Menu Button + Logo */}
+            <div className="flex items-center gap-3">
+              <button 
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <div className="flex items-center gap-2 lg:hidden">
+                <img src="/yama-favicon.svg" alt="YAMA" className="w-8 h-8" />
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white">Bobo Validades</h1>
+              </div>
+              <div className="hidden lg:block">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
+                <p className="text-gray-600 dark:text-gray-400">Controle de validades e estoque</p>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+            
+            {/* Header Actions */}
+            <div className="flex items-center gap-2 lg:gap-4">
+              <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-400">
                 {filteredProducts.length} de {products.length} produtos
               </div>
+              <button 
+                onClick={handleLogout}
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 p-6 overflow-auto bg-gray-50 dark:bg-slate-900">
+        <main className="flex-1 p-4 lg:p-6 overflow-auto bg-gray-50 dark:bg-slate-900">
 
 
           {/* Search and Filters */}
@@ -934,8 +1095,9 @@ export default function Dashboard() {
                   )}
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <Table>
+                <div className="overflow-x-auto -mx-4 lg:mx-0">
+                  <div className="min-w-full inline-block align-middle">
+                    <Table className="min-w-full">
                     <TableHeader>
                       <TableRow className="border-gray-100 dark:border-slate-800/30 hover:bg-gray-50/50 dark:hover:bg-slate-900/20">
                         <TableHead className="w-12">
@@ -1042,25 +1204,26 @@ export default function Dashboard() {
                         );
                       })}
                     </TableBody>
-                  </Table>
+                    </Table>
+                  </div>
                 </div>
               )}
               
               {/* Controles de Paginação */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-600 dark:text-slate-400">
-                      Mostrando {startIndex + 1} a {Math.min(endIndex, filteredProducts.length)} de {filteredProducts.length} produtos
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 lg:px-6 py-4 border-t border-gray-200 dark:border-slate-700">
+                  <div className="flex items-center gap-2 order-2 sm:order-1">
+                    <span className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                      {startIndex + 1}-{Math.min(endIndex, filteredProducts.length)} de {filteredProducts.length}
                     </span>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 order-3 sm:order-2">
                     <Select value={itemsPerPage.toString()} onValueChange={(value) => {
                       setItemsPerPage(Number(value));
                       setCurrentPage(1);
                     }}>
-                      <SelectTrigger className="w-20 h-8">
+                      <SelectTrigger className="w-16 h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1070,10 +1233,10 @@ export default function Dashboard() {
                         <SelectItem value="50">50</SelectItem>
                       </SelectContent>
                     </Select>
-                    <span className="text-sm text-slate-600 dark:text-slate-400">por página</span>
+                    <span className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 hidden sm:inline">por página</span>
                   </div>
                   
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 order-1 sm:order-3">
                     <Button
                       variant="outline"
                       size="sm"

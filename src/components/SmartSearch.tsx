@@ -218,7 +218,7 @@ export default function SmartSearch({ products, onSearch, onFilter, searchTerm }
       </div>
 
       {/* Quick Filters */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {/* Status Filters */}
         <div className="flex flex-wrap gap-2">
           {statusFilters.map((filter) => (
@@ -238,7 +238,9 @@ export default function SmartSearch({ products, onSearch, onFilter, searchTerm }
 
         {/* Session Filters */}
         {sessionFilters.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">Sessões:</div>
+            <div className="flex flex-wrap gap-2">
             {sessionFilters.map((filter) => (
               <Badge
                 key={filter.value}
@@ -250,6 +252,7 @@ export default function SmartSearch({ products, onSearch, onFilter, searchTerm }
                 {filter.label} ({filter.count})
               </Badge>
             ))}
+            </div>
           </div>
         )}
       </div>

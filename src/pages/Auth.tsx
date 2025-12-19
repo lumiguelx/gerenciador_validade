@@ -100,7 +100,7 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-xl border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800">
         <CardHeader className="text-center space-y-4 pb-6">
           <div className="mx-auto w-16 h-16 flex items-center justify-center">
-            <img src="/yama-favicon.svg" alt="YAMA" className="w-16 h-16" />
+            <img src="/jojo_fav.png" alt="Jojo" className="w-16 h-16" />
           </div>
           <div>
             <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">

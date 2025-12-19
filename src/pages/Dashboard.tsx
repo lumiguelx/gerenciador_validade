@@ -63,6 +63,7 @@ export default function Dashboard() {
   const [exportingPDF, setExportingPDF] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
   const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [exportSessionFilter, setExportSessionFilter] = useState<string>('all');
   
   // Paginação
   const [currentPage, setCurrentPage] = useState(1);
@@ -260,17 +261,23 @@ export default function Dashboard() {
   useEffect(() => {
     let filtered = [...products];
 
-    // Filtro por busca
-    if (searchTerm) {
-      filtered = filtered.filter(p => 
-        p.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.barcode?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    // Filtro por sessão PRIMEIRO (para manter o contexto da sessão)
+    if (sessionFilter !== 'all') {
+      console.log('Filtering by session:', sessionFilter);
+      console.log('Products before session filter:', filtered.length);
+      filtered = filtered.filter(p => p.product_brand === sessionFilter);
+      console.log('Products after session filter:', filtered.length);
     }
 
-    // Filtro por sessão
-    if (sessionFilter !== 'all') {
-      filtered = filtered.filter(p => p.product_brand === sessionFilter);
+    // Filtro por busca DENTRO da sessão selecionada
+    if (searchTerm) {
+      console.log('Applying search within session. Products before search:', filtered.length);
+      filtered = filtered.filter(p => 
+        p.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.barcode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.product_brand?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      console.log('Products after search:', filtered.length);
     }
 
     // Filtro por dias
@@ -446,7 +453,7 @@ export default function Dashboard() {
     }
   };
 
-  const handleExportPDF = async (exportType: 'all' | 'session' | 'selected') => {
+  const handleExportPDF = async (exportType: 'all' | 'session' | 'selected', specificSession?: string) => {
     setExportingPDF(true);
     
     try {
@@ -462,13 +469,14 @@ export default function Dashboard() {
           title = 'Relatório Completo';
           break;
         case 'session':
-          if (sessionFilter === 'all') {
+          const sessionToUse = specificSession || exportSessionFilter;
+          if (sessionToUse === 'all') {
             toast.error('Selecione uma sessão primeiro');
             setExportingPDF(false);
             return;
           }
-          productsToExport = products.filter(p => p.product_brand === sessionFilter);
-          title = `Relatório - ${sessionFilter}`;
+          productsToExport = products.filter(p => p.product_brand === sessionToUse);
+          title = `Relatório - ${sessionToUse}`;
           break;
         case 'selected':
           if (selectedProducts.size === 0) {
@@ -483,60 +491,19 @@ export default function Dashboard() {
       
       const doc = new jsPDF();
       
-      doc.setFontSize(18);
+      // Título menor e mais compacto
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text(title, 105, 15, { align: 'center' });
+      doc.text('Relatório Validades', 105, 12, { align: 'center' });
       
-      doc.setFontSize(10);
+      // Data em vermelho e menor
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.text(format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }), 105, 22, { align: 'center' });
+      doc.setTextColor(220, 38, 127); // Cor vermelha
+      doc.text(format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }), 105, 18, { align: 'center' });
       
-      // Filtros aplicados
-      let filterText = '';
-      if (sessionFilter !== 'all') filterText += `Sessão: ${sessionFilter} | `;
-      if (daysFilter !== 'all') {
-        const daysLabels: Record<string, string> = {
-          'expired': 'Vencidos',
-          '0': 'Vence hoje',
-          '7': 'Vence em 7 dias',
-          '15': 'Vence em 15 dias',
-          '30': 'Vence em 30 dias'
-        };
-        filterText += `Filtro: ${daysLabels[daysFilter]} | `;
-      }
-      if (isAdmin && selectedUserId !== 'mine') {
-        const userName = selectedUserId === 'all' ? 'Todos usuários' : allUsers.find(u => u.id === selectedUserId)?.email || '';
-        filterText += `Usuário: ${userName}`;
-      }
-      
-      if (filterText) {
-        doc.setFontSize(9);
-        doc.text(filterText, 14, 28);
-      }
-      
-      // Resumo
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Resumo:', 14, filterText ? 36 : 32);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      
-      const stats = {
-        total: productsToExport.length,
-        normal: productsToExport.filter(p => p.status === 'normal').length,
-        primeira: productsToExport.filter(p => p.status === 'primeira_rebaixa').length,
-        segunda: productsToExport.filter(p => p.status === 'segunda_rebaixa').length
-      };
-      
-      doc.text(`Total: ${stats.total} | Normal: ${stats.normal} | Rebaixa 1: ${stats.primeira} | Rebaixa 2: ${stats.segunda}`, 14, filterText ? 42 : 38);
-      
-      const exportedExpired = productsToExport.filter(p => isExpired(p.expiry_date)).length;
-      const exportedExpiring = productsToExport.filter(p => isExpiringSoon(p.expiry_date) && !isExpired(p.expiry_date)).length;
-      
-      if (exportedExpired > 0 || exportedExpiring > 0) {
-        doc.setFont('helvetica', 'bold');
-        doc.text(`Alertas: ${exportedExpired} vencido(s), ${exportedExpiring} vencendo em 7 dias`, 14, filterText ? 48 : 44);
-      }
+      // Reset cor para preto
+      doc.setTextColor(0, 0, 0);
       
       // Tabela
       const tableData = productsToExport.map(p => {
@@ -553,7 +520,7 @@ export default function Dashboard() {
       });
       
       autoTable(doc, {
-        startY: filterText ? 54 : 50,
+        startY: 25, // Começar logo após o título e data
         head: [['Produto', 'Sessão', 'Validade', 'Dias', 'Qtd', 'Status']],
         body: tableData,
         styles: { fontSize: 8, cellPadding: 2 },
@@ -623,7 +590,7 @@ export default function Dashboard() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
         <div className="text-center">
           <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg mb-4 inline-block">
-            <img src="/yama-favicon.svg" alt="YAMA" className="w-12 h-12 animate-pulse" />
+            <img src="/jojo_fav.png" alt="Jojo" className="w-12 h-12 animate-pulse" />
           </div>
           <p className="text-slate-600 dark:text-slate-300 text-lg font-medium">Carregando...</p>
         </div>
@@ -639,7 +606,7 @@ export default function Dashboard() {
         <div className="p-6 border-b border-gray-200 dark:border-slate-700">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 flex items-center justify-center">
-              <img src="/yama-favicon.svg" alt="YAMA" className="w-10 h-10" />
+              <img src="/jojo_fav.png" alt="Jojo" className="w-10 h-10" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">Bobo Validades</h1>
@@ -760,7 +727,7 @@ export default function Dashboard() {
             {/* Mobile Header */}
             <div className="p-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img src="/yama-favicon.svg" alt="YAMA" className="w-8 h-8" />
+                <img src="/jojo_fav.png" alt="Jojo" className="w-8 h-8" />
                 <div>
                   <h1 className="text-lg font-bold text-gray-900 dark:text-white">Bobo Validades</h1>
                 </div>
@@ -899,7 +866,7 @@ export default function Dashboard() {
                 </svg>
               </button>
               <div className="flex items-center gap-2 lg:hidden">
-                <img src="/yama-favicon.svg" alt="YAMA" className="w-6 h-6 sm:w-8 sm:h-8" />
+                <img src="/jojo_fav.png" alt="Jojo" className="w-6 h-6 sm:w-8 sm:h-8" />
                 <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">Bobo Validades</h1>
               </div>
               <div className="hidden lg:block">
@@ -936,8 +903,11 @@ export default function Dashboard() {
                 if (type === 'status') {
                   if (value === 'expired') setDaysFilter('expired');
                   else if (value === '7days') setDaysFilter('7');
+                  else if (value === 'primeira_rebaixa') setDaysFilter('all'); // Reset days filter for status filters
+                  else if (value === 'segunda_rebaixa') setDaysFilter('all');
                 } else if (type === 'session') {
                   setSessionFilter(value);
+                  console.log('Session filter set to:', value); // Debug log
                 }
               }}
               searchTerm={searchTerm}
@@ -1407,15 +1377,38 @@ export default function Dashboard() {
                 Todos os Produtos ({products.length})
               </Button>
               
-              <Button
-                onClick={() => handleExportPDF('session')}
-                disabled={exportingPDF || sessionFilter === 'all'}
-                variant="outline"
-                className="w-full justify-start border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                Sessão Atual {sessionFilter !== 'all' && `(${sessionFilter})`}
-              </Button>
+              {/* Seletor de Sessão para Exportação */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                  Exportar por Sessão:
+                </label>
+                <Select value={exportSessionFilter} onValueChange={setExportSessionFilter}>
+                  <SelectTrigger className="w-full border-emerald-200 dark:border-emerald-700">
+                    <SelectValue placeholder="Selecione uma sessão" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Sessões</SelectItem>
+                    {sessions.map((session) => {
+                      const count = products.filter(p => p.product_brand === session).length;
+                      return count > 0 ? (
+                        <SelectItem key={session} value={session}>
+                          {session} ({count})
+                        </SelectItem>
+                      ) : null;
+                    })}
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={() => handleExportPDF('session')}
+                  disabled={exportingPDF || exportSessionFilter === 'all'}
+                  variant="outline"
+                  className="w-full justify-start border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
+                >
+                  <Filter className="w-4 h-4 mr-2" />
+                  Exportar Sessão Selecionada
+                  {exportSessionFilter !== 'all' && ` (${products.filter(p => p.product_brand === exportSessionFilter).length})`}
+                </Button>
+              </div>
               
               <Button
                 onClick={() => handleExportPDF('selected')}

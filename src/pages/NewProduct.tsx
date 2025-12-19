@@ -398,7 +398,7 @@ export default function NewProduct() {
             <CardHeader className="border-b border-slate-200 dark:border-slate-700 p-6">
               <div className="flex items-center gap-4 mb-2">
                 <div className="w-12 h-12 flex items-center justify-center">
-                  <img src="/yama-favicon.svg" alt="YAMA" className="w-10 h-10" />
+                  <img src="/jojo_fav.png" alt="Jojo" className="w-10 h-10" />
                 </div>
                 <div>
                   <CardTitle className="text-xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">Novo Produto</CardTitle>

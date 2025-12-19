@@ -152,7 +152,7 @@ export default function SmartSearch({ products, onSearch, onFilter, searchTerm }
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
         <Input
           ref={inputRef}
-          placeholder="Busca inteligente: produto, código, sessão..."
+          placeholder="Buscar produtos, códigos ou sessões..."
           value={searchTerm}
           onChange={(e) => onSearch(e.target.value)}
           onFocus={() => setShowSuggestions(true)}

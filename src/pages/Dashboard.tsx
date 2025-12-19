@@ -512,6 +512,7 @@ export default function Dashboard() {
         return [
           p.product_name,
           p.product_brand || '-',
+          p.barcode || '-',
           format(new Date(p.expiry_date), 'dd/MM/yyyy'),
           expired ? 'VENCIDO' : days.toString(),
           p.quantity.toString(),
@@ -521,18 +522,19 @@ export default function Dashboard() {
       
       autoTable(doc, {
         startY: 25, // Começar logo após o título e data
-        head: [['Produto', 'Sessão', 'Validade', 'Dias', 'Qtd', 'Status']],
+        head: [['Produto', 'Sessão', 'Código', 'Validade', 'Dias', 'Qtd', 'Status']],
         body: tableData,
         styles: { fontSize: 8, cellPadding: 2 },
         headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255], fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [248, 250, 252] },
         columnStyles: {
-          0: { cellWidth: 50 },
-          1: { cellWidth: 35 },
-          2: { cellWidth: 25 },
-          3: { cellWidth: 18 },
-          4: { cellWidth: 15 },
-          5: { cellWidth: 27 }
+          0: { cellWidth: 45 }, // Produto - reduzido um pouco
+          1: { cellWidth: 30 }, // Sessão - reduzido um pouco
+          2: { cellWidth: 25 }, // Código de barras - nova coluna
+          3: { cellWidth: 22 }, // Validade
+          4: { cellWidth: 15 }, // Dias
+          5: { cellWidth: 12 }, // Qtd - reduzido um pouco
+          6: { cellWidth: 21 }  // Status - reduzido um pouco
         }
       });
       
@@ -1449,6 +1451,7 @@ export default function Dashboard() {
             <tr className="bg-gray-100">
               <th className="border border-gray-300 p-2 text-left">Produto</th>
               <th className="border border-gray-300 p-2 text-left">Sessão</th>
+              <th className="border border-gray-300 p-2 text-left">Código</th>
               <th className="border border-gray-300 p-2 text-left">Validade</th>
               <th className="border border-gray-300 p-2 text-left">Dias</th>
               <th className="border border-gray-300 p-2 text-left">Qtd</th>
@@ -1463,6 +1466,7 @@ export default function Dashboard() {
                 <tr key={product.id}>
                   <td className="border border-gray-300 p-2">{product.product_name}</td>
                   <td className="border border-gray-300 p-2">{product.product_brand || '-'}</td>
+                  <td className="border border-gray-300 p-2">{product.barcode || '-'}</td>
                   <td className="border border-gray-300 p-2">{format(new Date(product.expiry_date), 'dd/MM/yyyy')}</td>
                   <td className="border border-gray-300 p-2">{expired ? 'VENCIDO' : days}</td>
                   <td className="border border-gray-300 p-2">{product.quantity}</td>

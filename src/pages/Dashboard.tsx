@@ -1096,6 +1096,7 @@ export default function Dashboard() {
                   )}
                 </div>
               ) : (
+                <>
                 {/* Desktop Table View */}
                 <div className="hidden lg:block overflow-x-auto">
                   <Table>
@@ -1297,6 +1298,7 @@ export default function Dashboard() {
                     );
                   })}
                 </div>
+                </>
               )}
               
               {/* Controles de Paginação */}

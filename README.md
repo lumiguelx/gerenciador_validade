@@ -235,20 +235,5 @@ npm run type-check   # Verificação de tipos TypeScript
 
 Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
 
-## 👨‍💻 Autor
 
-**Seu Nome**
-- GitHub: [@seu-usuario](https://github.com/seu-usuario)
-- Email: seu@email.com
 
-## 🙏 Agradecimentos
-
-- [Supabase](https://supabase.com) - Backend as a Service
-- [Vercel](https://vercel.com) - Hospedagem e deploy
-- [Shadcn/ui](https://ui.shadcn.com) - Componentes UI
-- [Lucide](https://lucide.dev) - Ícones
-- [Tailwind CSS](https://tailwindcss.com) - Framework CSS
-
----
-
-⭐ **Se este projeto te ajudou, considere dar uma estrela!**# Deploy trigger - 12/18/2025 20:17:51

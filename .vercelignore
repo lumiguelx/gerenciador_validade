@@ -1,0 +1,33 @@
+# Files and directories to ignore during Vercel build
+
+# Development files
+*.log
+.env.local
+.env.development.local
+.env.test.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts (will be rebuilt)
+dist/
+build/
+
+# Dependencies (will be installed)
+node_modules/
+
+# Git
+.git/
+
+# Documentation (not needed for build)
+README.md
+DEPLOY.md
+*.md
+
